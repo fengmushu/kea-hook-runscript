@@ -4,7 +4,7 @@
 
 help()
 {
-    echo "./iperf-cli.sh <ver:3/2> <seconds:10> <dir:DL/UL> [pkgsize:256] [bitrate:3M] [udp/tcp:u]"
+    echo "./iperf-cli.sh <ver:3/2> <seconds:10> <dir:DL/UL/BI> [pkgsize:256] [bitrate:3M] [udp/tcp:u]"
 }
 help
 
@@ -29,7 +29,7 @@ FLOW_DIR=""
 } || {
     CMD=iperf
 }
-let SYS_MONITOR=$SEC_TO_RUN+5
+let SYS_MONITOR=$SEC_TO_RUN+10
 let SYS_WATCHDOG=$SEC_TO_RUN+10
 
 echo "seconds to run: $SEC_TO_RUN, use version-$VERSION"
@@ -51,7 +51,7 @@ iperf2_start()
     for IP4ADDR in $LEASES
     do
         echo $IP4ADDR
-        timeout -s SIGKILL $SYS_WATCHDOG CMD -c $IP4ADDR -u -b3M -l256 -i1 -t$SEC_TO_RUN $FLOW_DIR -yC > $DIR_RUN/iperf2-$IP4ADDR.csv 2>/dev/null &
+        timeout -s SIGKILL $SYS_WATCHDOG $CMD -c $IP4ADDR -u -b3M -l256 -i1 -t$SEC_TO_RUN $FLOW_DIR -yC > $DIR_RUN/iperf2-$IP4ADDR.csv 2>/dev/null &
     done
 }
 
@@ -60,6 +60,13 @@ sys_monitor()
     timeout $SYS_MONITOR gnome-system-monitor -r 2>&1 &
 }
 
+iperf_stop_all()
+{
+    killall iperf > /dev/null 2>&1
+    killall iperf3 > /dev/null 2>&1
+}
+
+iperf_stop_all
 [ $VERSION -eq 2 ] && {
     iperf2_start
 } || {

@@ -18,7 +18,7 @@ OS_VERSION=`ls bot*.bin | awk -F- '{printf "%s-%s", $3,$4}'`
 }
 echo "bin to upgrade: $FW_BIN, $OS_VERSION"
 
-sysupgrade()
+prepare()
 {
     DIR_RUN=/tmp/iperf3/`date +%m%d-%H%M%S`
 
@@ -32,6 +32,12 @@ sysupgrade()
 	# StrictHostKeyChecking accept-new
 
     mkdir -p $DIR_RUN
+}
+
+sysupgrade()
+{
+    prepare
+
     for IP4ADDR in $LEASES
     do
         printf  "\n\n>>>>>>>: %s\n" $IP4ADDR
@@ -53,5 +59,20 @@ sysupgrade()
     done
 }
 
-sysupgrade
+ssh_call()
+{
+    prepare
 
+    for IP4ADDR in $LEASES
+    do
+        echo "rpc to $IP4ADDR"
+        timeout -s SIGKILL 30 sshpass ssh root@$IP4ADDR "$*" &
+    done
+}
+
+[ x"$FW_BIN" = x"exec" ] && {
+    shift
+    ssh_call $*
+} || {
+    sysupgrade
+}
