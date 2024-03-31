@@ -29,6 +29,8 @@ FLOW_DIR=""
 } || {
     CMD=iperf
 }
+let SYS_MONITOR=$SEC_TO_RUN+5
+let SYS_WATCHDOG=$SEC_TO_RUN+10
 
 echo "seconds to run: $SEC_TO_RUN, use version-$VERSION"
 
@@ -40,7 +42,7 @@ iperf3_start()
     for IP4ADDR in $LEASES
     do
         echo  $IP4ADDR
-        $CMD -c $IP4ADDR -u -b3M -l256 -t$SEC_TO_RUN $FLOW_DIR -J -T "$IP4ADDR" --get-server-output --forceflush --logfile $DIR_RUN/report-$IP4ADDR.json &
+        timeout -s SIGKILL $SYS_WATCHDOG $CMD -c $IP4ADDR -u -b3M -l256 -t$SEC_TO_RUN $FLOW_DIR -J -T "$IP4ADDR" --get-server-output --forceflush --logfile $DIR_RUN/report-$IP4ADDR.json &
     done
 }
 
@@ -49,14 +51,13 @@ iperf2_start()
     for IP4ADDR in $LEASES
     do
         echo $IP4ADDR
-        $CMD -c $IP4ADDR -u -b3M -l256 -i1 -t$SEC_TO_RUN $FLOW_DIR -yC > $DIR_RUN/iperf2-$IP4ADDR.csv 2>/dev/null &
+        timeout -s SIGKILL $SYS_WATCHDOG CMD -c $IP4ADDR -u -b3M -l256 -i1 -t$SEC_TO_RUN $FLOW_DIR -yC > $DIR_RUN/iperf2-$IP4ADDR.csv 2>/dev/null &
     done
 }
 
 sys_monitor()
 {
-    let SYS_MONITOR=$SEC_TO_RUN+5
-    timeout $SYS_MONITOR gnome-system-monitor 2>&1 &
+    timeout $SYS_MONITOR gnome-system-monitor -r 2>&1 &
 }
 
 [ $VERSION -eq 2 ] && {
