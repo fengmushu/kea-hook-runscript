@@ -7,15 +7,12 @@ PROTO=static
 
 echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
 echo $*
-# echo "-----------------------------------"
-# echo `env`
-echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
 
 iperf_cli()
 {
-  DIR_RUN=/var/run/iperf/cli-$1
+  DIR_RUN=/tmp/iperf/cli-$1
   mkdir -p $DIR_RUN
-    
+  echo `env`
 }
 
 [ -z "${KEA_LEASE4_ADDRESS}" ] || {
